@@ -27,7 +27,7 @@ def test_series_creation_with_length_mismatched_index_raises_value_error():
 def test_series_creation_with_non_iterable_value_creates_one_element_series():
     s = Series(100)
 
-    assert list(s) == [100]
+    assert s.eq(Series([100]))
 
 
 @pytest.mark.parametrize(["values"], [[[100, 200, 300]], [[]]])
@@ -41,53 +41,58 @@ def test_series_len_is_correct(values):
 
 
 @pytest.mark.parametrize(
-    ["values", "op", "scalar", "expected_values"],
+    ["left_series", "right_series", "expected_result"],
     [
-        ([100, 200], operator.add, 1, [101, 201]),
-        ([100, 200], operator.sub, 10, [90, 190]),
-        ([100, 200], operator.mul, 5, [500, 1000]),
-        ([100, 200], operator.truediv, 2, [50, 100]),
-        ([100, 200], operator.truediv, 0, [inf, inf]),
-        ([100, 200], operator.floordiv, 3, [33, 66]),
-        ([100, 200], operator.floordiv, 0, [inf, inf]),
-        ([100, 200], operator.mod, 9, [1, 2]),
-        ([100, 200], operator.mod, 0, [nan, nan]),
-        ([100, 200], operator.pow, 2, [10000, 40000]),
-        ([100, 10000], operator.pow, 0.5, [10, 100]),
+        (Series([10, 20]), Series([10, 20]), True),
+        (Series(), Series(), True),
+        (Series([10, 20]), Series([20, 10]), False),
+        (Series([10, 20], index=[0, 1]), Series([10, 20], index=[1, 2]), False),
     ],
 )
-def test_binary_arithmetic_operations_with_scalars(values, op, scalar, expected_values):
-    s = Series(values)
-
-    assert (
-        list(op(s, scalar)) == expected_values
-        and list(op(scalar, s)) == expected_values
-    )
+def test_series_eq_is_correct(left_series, right_series, expected_result):
+    assert left_series.eq(right_series) is expected_result
 
 
 @pytest.mark.parametrize(
-    ["left_values", "op", "right_values", "expected_values"],
+    ["series", "op", "scalar", "expected_series"],
     [
-        ([100, 200], operator.add, [2, 5], [102, 205]),
-        ([100, 200], operator.sub, [10, -2], [90, 202]),
-        ([100, 200], operator.mul, [0.5, 7], [50, 1400]),
-        ([100, 200], operator.truediv, [8, 4], [12.5, 50]),
-        ([100, 200], operator.truediv, [1, 0], [100, inf]),
-        ([100, 200], operator.floordiv, [8, 3], [12, 66]),
-        ([100, 200], operator.floordiv, [0, 0], [inf, inf]),
-        ([100, 200], operator.mod, [11, -15], [1, -10]),
-        ([100, 200], operator.mod, [0, 0], [nan, nan]),
-        ([100, 200], operator.pow, [2, 0], [10000, 1]),
-        ([100, 10000], operator.pow, [0.5, -1], [10, 0.0001]),
+        (Series([100, 200]), operator.add, 1, Series([101, 201])),
+        (Series([100, 200]), operator.sub, 10, Series([90, 190])),
+        (Series([100, 200]), operator.mul, 5, Series([500, 1000])),
+        (Series([100, 200]), operator.truediv, 2, Series([50, 100])),
+        (Series([100, 200]), operator.truediv, 0, Series([inf, inf])),
+        (Series([100, 200]), operator.floordiv, 3, Series([33, 66])),
+        (Series([100, 200]), operator.floordiv, 0, Series([inf, inf])),
+        (Series([100, 200]), operator.mod, 9, Series([1, 2])),
+        (Series([100, 200]), operator.mod, 0, Series([nan, nan])),
+        (Series([100, 200]), operator.pow, 2, Series([10000, 40000])),
+        (Series([100, 10000]), operator.pow, 0.5, Series([10, 100])),
+    ],
+)
+def test_binary_arithmetic_operations_with_scalars(series, op, scalar, expected_series):
+    assert op(series, scalar).eq(expected_series)
+
+
+@pytest.mark.parametrize(
+    ["left_series", "op", "right_series", "expected_series"],
+    [
+        (Series([100, 200]), operator.add, Series([2, 5]), Series([102, 205])),
+        (Series([100, 200]), operator.sub, Series([10, -2]), Series([90, 202])),
+        (Series([100, 200]), operator.mul, Series([0.5, 7]), Series([50, 1400])),
+        (Series([100, 200]), operator.truediv, Series([8, 4]), Series([12.5, 50])),
+        (Series([100, 200]), operator.truediv, Series([1, 0]), Series([100, inf])),
+        (Series([100, 200]), operator.floordiv, Series([8, 3]), Series([12, 66])),
+        (Series([100, 200]), operator.floordiv, Series([0, 0]), Series([inf, inf])),
+        (Series([100, 200]), operator.mod, Series([11, -15]), Series([1, -10])),
+        (Series([100, 200]), operator.mod, Series([0, 0]), Series([nan, nan])),
+        (Series([100, 200]), operator.pow, Series([2, 0]), Series([10000, 1])),
+        (Series([100, 10000]), operator.pow, Series([0.5, -1]), Series([10, 0.0001])),
     ],
 )
 def test_binary_arithmetic_operations_between_series_of_same_index(
-    left_values, op, right_values, expected_values
+    left_series, op, right_series, expected_series
 ):
-    left = Series(left_values)
-    right = Series(right_values)
-
-    assert list(op(left, right)) == expected_values
+    assert op(left_series, right_series).eq(expected_series)
 
 
 @pytest.mark.parametrize(
@@ -104,70 +109,59 @@ def test_binary_arithmetic_operations_between_series_of_same_index(
 def test_binary_arithmetic_operations_between_series_of_mismatched_index(
     left_series, op, right_series, expected_series
 ):
-    result = op(left_series, right_series)
-
-    assert result == expected_series
+    assert op(left_series, right_series).eq(expected_series)
 
 
 @pytest.mark.parametrize(
-    ["values", "op", "expected_values"],
+    ["series", "op", "expected_series"],
     [
-        ([100, 200], operator.neg, [-100, -200]),
-        ([-100, 200], operator.neg, [100, -200]),
-        ([0], operator.neg, [0]),
-        ([100, 200], operator.pos, [100, 200]),
-        ([-100, 200], operator.pos, [-100, 200]),
-        ([0], operator.pos, [0]),
+        (Series([100, 200]), operator.neg, Series([-100, -200])),
+        (Series([-100, 200]), operator.neg, Series([100, -200])),
+        (Series([0]), operator.neg, Series([0])),
+        (Series([100, 200]), operator.pos, Series([100, 200])),
+        (Series([-100, 200]), operator.pos, Series([-100, 200])),
+        (Series([0]), operator.pos, Series([0])),
     ],
 )
-def test_unary_arithmetic_operations(values, op, expected_values):
-    s = Series(values)
-
-    assert list(op(s)) == expected_values
+def test_unary_arithmetic_operations(series, op, expected_series):
+    assert op(series).eq(expected_series)
 
 
 @pytest.mark.parametrize(
-    ["values", "op", "scalar", "expected_values"],
+    ["series", "op", "scalar", "expected_series"],
     [
-        ([100, 200], operator.lt, 150, [True, False]),
-        ([50, 70], operator.lt, 50, [False, False]),
-        ([100, 200], operator.le, 200, [True, True]),
-        ([1000], operator.eq, 1000, [True]),
-        ([1000.1], operator.eq, 1000, [False]),
-        ([250, 251], operator.ne, 250, [False, True]),
-        ([100, 200], operator.gt, 101, [False, True]),
-        ([50, 70], operator.ge, 50, [True, True]),
+        (Series([100, 200]), operator.lt, 150, Series([True, False])),
+        (Series([50, 70]), operator.lt, 50, Series([False, False])),
+        (Series([100, 200]), operator.le, 200, Series([True, True])),
+        (Series([1000]), operator.eq, 1000, Series([True])),
+        (Series([1000.1]), operator.eq, 1000, Series([False])),
+        (Series([250, 251]), operator.ne, 250, Series([False, True])),
+        (Series([100, 200]), operator.gt, 101, Series([False, True])),
+        (Series([50, 70]), operator.ge, 50, Series([True, True])),
     ],
 )
-def test_comparator_operation_with_scalar(values, op, scalar, expected_values):
+def test_comparator_operation_with_scalar(series, op, scalar, expected_series):
     """
     The resulting series also needs to have an identical index.
     """
-    s = Series(values)
-    result = op(s, scalar)
-
-    assert list(result) == expected_values and result.index == s.index
+    assert op(series, scalar).eq(expected_series)
 
 
 @pytest.mark.parametrize(
-    ["left_values", "op", "right_values", "expected_values"],
+    ["left_series", "op", "right_series", "expected_series"],
     [
-        ([100, 200], operator.lt, [200, 100], [True, False]),
-        ([100, 200], operator.le, [100, 50], [True, False]),
-        ([100, 200], operator.eq, [100, 100], [True, False]),
-        ([100, 200], operator.ne, [200, 200], [True, False]),
-        ([1, 2], operator.gt, [-1, 7], [True, False]),
-        ([5, 10], operator.ge, [6, 10], [False, True]),
+        (Series([100, 200]), operator.lt, Series([200, 100]), Series([True, False])),
+        (Series([100, 200]), operator.le, Series([100, 50]), Series([True, False])),
+        (Series([100, 200]), operator.eq, Series([100, 100]), Series([True, False])),
+        (Series([100, 200]), operator.ne, Series([200, 200]), Series([True, False])),
+        (Series([1, 2]), operator.gt, Series([-1, 7]), Series([True, False])),
+        (Series([5, 10]), operator.ge, Series([6, 10]), Series([False, True])),
     ],
 )
 def test_comparator_operation_with_series(
-    left_values, op, right_values, expected_values
+    left_series, op, right_series, expected_series
 ):
-    left = Series(left_values)
-    right = Series(right_values)
-    result = op(left, right)
-
-    assert list(result) == expected_values and len(result) == len(left) == len(right)
+    assert op(left_series, right_series).eq(expected_series)
 
 
 @pytest.mark.parametrize(
@@ -213,7 +207,7 @@ def test_str_is_correct(series, expected_str):
     ],
 )
 def test_repr_is_correct(series, expected_repr):
-    assert repr(series) == expected_repr
+    assert repr(series) == expected_repr and Series(repr(series)).eq(series)
 
 
 @pytest.mark.parametrize(
@@ -301,7 +295,7 @@ def test_len_is_correct(series, expected_len):
 
 
 @pytest.mark.parametrize(
-    ["series", "selector", "expected_result"],
+    ["series", "selector", "expected_series"],
     [
         (Series([10, 100]), Series([False, True]), Series([100], index=[1])),
         (
@@ -311,7 +305,5 @@ def test_len_is_correct(series, expected_len):
         ),
     ],
 )
-def test_slicing_by_boolean_series(series, selector, expected_result):
-    result = series[selector]
-
-    assert result == expected_result
+def test_slicing_by_boolean_series(series, selector, expected_series):
+    assert series[selector].eq(expected_series)
