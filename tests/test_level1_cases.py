@@ -29,10 +29,7 @@ def test_init_with_index_but_no_values_sets_values_to_nan(index):
     ],
 )
 def test_min(series, expected_min):
-    """
-    Series.min is NOT a function
-    """
-    assert series.min == expected_min
+    assert series.min() == expected_min
 
 
 @pytest.mark.parametrize(
@@ -44,10 +41,7 @@ def test_min(series, expected_min):
     ],
 )
 def test_max(series, expected_max):
-    """
-    Series.max is NOT a function
-    """
-    assert series.max == expected_max
+    assert series.max() == expected_max
 
 
 @pytest.mark.parametrize(
@@ -60,10 +54,7 @@ def test_max(series, expected_max):
     ],
 )
 def test_idxmin(series, expected_index):
-    """
-    Series.idxmin is NOT a function.
-    """
-    assert series.idxmin == expected_index
+    assert series.idxmin() == expected_index
 
 
 @pytest.mark.parametrize(
@@ -76,10 +67,7 @@ def test_idxmin(series, expected_index):
     ],
 )
 def test_idxmax(series, expected_index):
-    """
-    Series.idxmax is NOT a function.
-    """
-    assert series.idxmax == expected_index
+    assert series.idxmax() == expected_index
 
 
 @pytest.mark.parametrize(
