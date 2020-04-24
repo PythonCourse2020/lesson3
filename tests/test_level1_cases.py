@@ -74,9 +74,9 @@ def test_idxmax(series, expected_index):
     ["series", "expected_series"],
     [
         (Series([10, 20, 30]), Series([nan, 10, 10])),
-        (Series(20, nan, 30, 40), Series([nan, nan, nan, 10])),
+        (Series([20, nan, 30, 40]), Series([nan, nan, nan, 10])),
         (
-            Series(2, 4, 8, 16, index=["a", "b", "c", "d"]),
+            Series([2, 4, 8, 16], index=["a", "b", "c", "d"]),
             Series([nan, 2, 4, 8], index=["a", "b", "c", "d"]),
         ),
     ],
