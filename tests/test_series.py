@@ -3,7 +3,7 @@ import operator
 
 import pytest
 
-from lesson3 import Series
+from lesson4.series import Series
 
 
 def test_series_creation_without_index_creates_default_index():
@@ -197,17 +197,17 @@ def test_str_is_correct(series, expected_str):
         (Series([10, 20, 30]), "Series([10, 20, 30], index=[0, 1, 2])"),
         (
             Series([0, 0, 0], index=["L", "B", "G"]),
-            """Series([0, 0, 0], index=["L", "B", "G"])""",
+            """Series([0, 0, 0], index=['L', 'B', 'G'])""",
         ),
         (
             Series([7, 5, 1], index=[10, 100, 1000]),
             "Series([7, 5, 1], index=[10, 100, 1000])",
         ),
-        (Series(), "Series([])"),
+        (Series(), "Series([], index=[])"),
     ],
 )
 def test_repr_is_correct(series, expected_repr):
-    assert repr(series) == expected_repr and Series(repr(series)).eq(series)
+    assert repr(series) == expected_repr and eval(repr(series)).eq(series)
 
 
 @pytest.mark.parametrize(
@@ -283,7 +283,7 @@ def test_iteritems_loops_over_key_value_tuples(series, expected_values):
     ],
 )
 def test_contains_checks_index(series, index, expected_result):
-    assert index in series is expected_result
+    assert (index in series) is expected_result
 
 
 @pytest.mark.parametrize(
