@@ -2,7 +2,7 @@ from math import nan
 
 import pytest
 
-from lesson3 import Series
+from lesson4 import Series
 
 
 @pytest.mark.parametrize(
@@ -103,7 +103,7 @@ def test_diff(series, expected_series):
 def test_in_place_assignment_by_index(series, index, value, expected_series):
     series.loc[index] = value
 
-    assert series.equals(expected_series)
+    assert series.eq(expected_series)
 
 
 @pytest.mark.parametrize(
@@ -121,4 +121,4 @@ def test_in_place_assignment_by_index(series, index, value, expected_series):
 def test_in_place_assignment_by_iloc(series, location, value, expected_series):
     series.iloc[location] = value
 
-    assert series.equals(expected_series)
+    assert series.eq(expected_series)
