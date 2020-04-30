@@ -22,7 +22,16 @@ class Series:
         if index is None:
             index = list(range(len(values)))
         else:
+            # Duplicate index values?
+            if len(index) != len(set(index)):
+                raise ValueError("Index cannot contain duplicate values")
+
             index = list(index)
+
+        # No values given, but index provided?
+        if len(values) == 0 and len(index) > 0:
+            # Set values to nans
+            values = [nan] * len(index)
 
         if len(values) != len(index):
             raise ValueError("values must have the same length as index")
@@ -96,7 +105,7 @@ class Series:
         Returns:
             list
         """
-        return list(self._values)
+        return self._values
 
     def iteritems(self):
         """
@@ -107,6 +116,43 @@ class Series:
             generator (object, Number)
         """
         return zip(self._index, self._values)
+
+    def min(self):
+        """
+        Returns:
+            Number - the minimum value in the Series.
+        """
+        return min(self._values)
+
+    def max(self):
+        """
+        Returns:
+            Number - the maximum value in the Series
+        """
+        return max(self._values)
+
+    def idxmin(self):
+        """
+        Returns:
+            object - the index of the first occurance of the minimum value in the
+                Series
+        """
+        return self._index[self._values.index(self.min())]
+
+    def idxmax(self):
+        """
+        Returns:
+            object - the index of the first occurance of the maximum value in the
+                Series
+        """
+        return self._index[self._values.index(self.max())]
+
+    def diff(self):
+        """
+        Returns:
+            Series - first difference of the values; first element is nan
+        """
+        return self - Series(self._values[:-1], index=self._index[1:])
 
     def __contains__(self, key):
         """
